@@ -1,1 +1,1 @@
-# LibSlashCommands
+# LibSlashCommands-1.0
