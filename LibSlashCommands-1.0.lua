@@ -77,7 +77,7 @@ function SlashCommand:AddWrongArgument(handler)
 	self.wrongArgumentFunction = handler
 end
 
--[[
+--[[
 function SlashCommand:NewEmpty()
 	local obj = {}
 	setmetatable(obj, self)
@@ -102,6 +102,9 @@ function SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgum
 end
 
 function SlashCommand:Done()
+	if not self.identifier then
+		self.identifier = string.match(debugstack(3), '%[string "@\Interface\\AddOns\\(%S+)\\'):upper()
+	end 
 	for i = 1,#self.aliases do
 		_G["SLASH_"..self.identifier..i] = self.aliases[i]
 	end
@@ -142,16 +145,11 @@ function LSC:NewSC(identifier, aliases, arguments, noArgument, wrongArgument)
 end
 
 -- LSC:NewSimpeSlashCommand([identifier], aliases, handler)
--- [identifier]	(string) 			- optional, unique identifier to the slash command. If omitted the addon name will be used
 -- aliases		(string or table)	- words the slash command respond to (i.e /myaddon, /myadd)
 --									  single string (ie "/myaddon") or table of string (ie {"/myaddon","/myadd","/addonmy"})
 -- handler		(function)			- function that do the work (msg,editBox as arguments)
-function LSC:NewSimpeSlashCommand(identifier, aliases, handler)
-	local test = handler
-	local handler = test and handler or aliases
-	local aliases = test and aliases or identifier
-	local identifier = test and identifier or string.match(debugstack(2), '%[string "@\Interface\\AddOns\\(%S+)\\')
-
+-- [identifier]	(string) 			- optional, unique identifier to the slash command. If omitted the addon name will be used
+function LSC:NewSimpeSlashCommand(aliases, handler, identifier)
 	local sc = LSC:NewSlashCommand(identifier, aliases, nil, handler, nil)
 	sc:Done()
 end
@@ -173,7 +171,7 @@ LSC:NewSimpeSlashCommand(/testaddon", function() --do stuff here-- end)
 
 
 -------------------------------------------------------------
-TWO COMMANDS (/testaddon and /testadd) THAT DO THE SAME THING
+ONE COMMAND (/testaddon and /testadd) WITH TWO ALIASES
 -------------------------------------------------------------
 
 local LSC = LibStub("LibSlashCommands-1.0")
