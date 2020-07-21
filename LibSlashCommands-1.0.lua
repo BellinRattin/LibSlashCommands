@@ -3,7 +3,6 @@ local LSC = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LSC then return end
 
-<<<<<<< HEAD
 -- check if the first character of a string is / and remove it
 -- return the string (minus leading /)
 local function CheckForLeadingSlash(word)
@@ -13,8 +12,6 @@ local function CheckForLeadingSlash(word)
 	return word
 end
 
-=======
->>>>>>> parent of c44fa3a... Update LibSlashCommands-1.0.lua
 local SlashCommand = {}
 
 -- SlashCommand:AddIdentifier(identifier)
@@ -34,18 +31,10 @@ function SlashCommand:AddAlias(alias)
 	assert((ty == "string") or (ty == "table"), "error, string or table requested")
 	self.aliases = self.aliases or {}
 	if ty == "string" then
-		print("string "..alias)
-<<<<<<< HEAD
 		table.insert(self.aliases, CheckForLeadingSlash(alias))
 	else
 		for i = 1,#alias do
 			table.insert(self.aliases, CheckForLeadingSlash(alias[i]))
-=======
-		table.insert(self.aliases, alias)
-	else
-		for i = 1,#alias do
-			table.insert(self.aliases, alias[i])
->>>>>>> parent of c44fa3a... Update LibSlashCommands-1.0.lua
 		end
 	end
 end
