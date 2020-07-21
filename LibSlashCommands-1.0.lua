@@ -3,6 +3,15 @@ local LSC = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LSC then return end
 
+-- check if the first character of a string is / and remove it
+-- return the string (minus leading /)
+local function RemoveLeadingSlash(word)
+	if string.sub(word,1,1) == "/" then
+		word = string.sub(word,2)
+	end
+	return word
+end
+
 local SlashCommand = {}
 
 -- SlashCommand:AddIdentifier(identifier)
@@ -23,10 +32,10 @@ function SlashCommand:AddAlias(alias)
 	self.aliases = self.aliases or {}
 	if ty == "string" then
 		print("string "..alias)
-		table.insert(self.aliases, alias)
+		table.insert(self.aliases, RemoveLeadingSlash(alias))
 	else
 		for i = 1,#alias do
-			table.insert(self.aliases, alias[i])
+			table.insert(self.aliases, RemoveLeadingSlash(alias[i]))
 		end
 	end
 end
