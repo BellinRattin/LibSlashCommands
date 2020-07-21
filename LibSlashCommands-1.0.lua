@@ -54,8 +54,8 @@ function SlashCommand:AddArgument(argument, handler)
 	assert((arty == "string") or (arty == "table"), "argument #1 error, string or table requested")
 	local haty = type(handler)
 	assert((haty == "function") or (haty == "nil"), "argument #2 error, function requested")
+	
 	self.arguments = self.arguments or {}
-
 	if arty == "string" then
 		self.arguments[argument] =  handler
 	else
@@ -119,15 +119,16 @@ function SlashCommand:Done()
 	SlashCmdList[self.identifier] = function (msg, editBox)
 		local others = {}
 		for other in msg:gmatch("%S+") do table.insert(others, other) end
-		local argument = table.remove(others, 1)
-		if argument then
+
+		if self.arguments then
+			local argument = table.remove(others, 1)
 			if self.arguments[argument] then
 				self.arguments[argument](others, editBox)
-			elseif self.wrongArgument then
-				self.wrongArgumentFunction()
 			end
 		elseif self.noArgument then
-			self.noArgumentFunction(msg, editBox)
+			self.noArgumentFunction(others, editBox)
+		elseif self.wrongArgument then
+			self.wrongArgumentFunction()
 		end
 	end
 end
