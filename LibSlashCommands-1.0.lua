@@ -1,10 +1,12 @@
+-- for more info and examples check the GitHub wiki
+-- https://github.com/BellinRattin/LibSlashCommands-1.0/wiki
+
 local MAJOR, MINOR = "LibSlashCommands-1.0", 1
 local LSC = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LSC then return end
 
--- check if the first character of a string is / and remove it
--- return the string (minus leading /)
+-- check if the first character of a string is / otherwise add it
 local function CheckForLeadingSlash(word)
 	if not (string.sub(word,1,1) == "/") then
 		word = "/"..word
@@ -14,17 +16,12 @@ end
 
 local SlashCommand = {}
 
--- SlashCommand:AddIdentifier(identifier)
--- [identifier]	(string) 			- optional, unique identifier to the slash command. If omitted the addon name will be used
 function SlashCommand:AddIdentifier(identifier)
 	if type(identifier) == "nil" then return end
 	assert((type(identifier) == "string"), "error, string or table requested")
 	self.identifier = identifier:upper()
 end
 
--- SlashCommand:AddAlias(alias)
--- [alias]		(string or table)	- words the slash command respond to (i.e /myaddon, /myadd)
---									  single string (ie "/myaddon") or table of string (ie {"/myaddon","/myadd","/addonmy"})
 function SlashCommand:AddAlias(alias)
 	if type(alias) == "nil" then return end
 	local ty = type(alias)
@@ -39,15 +36,6 @@ function SlashCommand:AddAlias(alias)
 	end
 end
 
--- SlashCommand:AddArgument(argument, handler)
--- for the slash command in the format "/mycommand argument1 other1 other2 .. otherX"
--- this function has two possible signatures
--- argument 	(string)		- the argument1 in the schema above
--- handler 		(function)		- the function to call in response of argument. all other arguments will be passed as a list (ie {other1, other2,.., otherX})
---								
--- or
---
--- argument 	(table)			- table of pairs {argument, handler} (i.e. {{argument1,handler1},{argument2,handler2},{argument3,handler3}})
 function SlashCommand:AddArgument(argument, handler)
 	if type(argument) == "nil" then return end
 	local arty = type(argument)
@@ -65,34 +53,17 @@ function SlashCommand:AddArgument(argument, handler)
 	end
 end
 
--- SlashCommand:AddNoArgument(handler)
--- optional, for when the slash command is called with no arguments
---
--- handler 	(function)			- the function to call
 function SlashCommand:AddNoArgument(handler)
 	if type(handler) == "nil" then return end
 	self.noArgument = true
 	self.noArgumentFunction = handler
 end
 
--- SlashCommand:AddWrongArgument(handler)
--- optional, for when the slash command is called with an argument that does not exist
---
--- handler 	(function)			- the function to call
 function SlashCommand:AddWrongArgument(handler)
 	if type(handler) == "nil" then return end
 	self.wrongArgument = true
 	self.wrongArgumentFunction = handler
 end
-
---[[
-function SlashCommand:NewEmpty()
-	local obj = {}
-	setmetatable(obj, self)
-	self.__index = self
-	return obj
-end
-]]
 
 -- return SlashCommand Object
 function SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgument)
@@ -132,31 +103,32 @@ function SlashCommand:Done()
 	end
 end
 
--- LSC:NewSlashCommand([identifier], [aliases], [arguments])
+-- LSC:NewSlashCommand([identifier], [aliases], [arguments], [noArgument],[wrongArgument])
 -- [identifier]	(string) 			- optional, unique identifier to the slash command. If omitted the addon name will be used
 -- [aliases]	(string or table)	- optional, words the slash command respond to (i.e /myaddon, /myadd)
 --									  single string (ie "/myaddon") or table of string (ie {"/myaddon","/myadd","/addonmy"})
 -- [arguments]	(table)				- optional, table of pairs {argument, handler} (i.e. {{argument1,handler1},{argument2,handler2},{argument3,handler3}})
+-- [noArgument]	(function)			- for when the slash command is called with no arguments
+-- [wrongArgument](function)		- for when the slash command is called with an argument that does not exist
 --
 -- all arguments are optionals, can be added later with
 -- identifier 	-> :AddIdentifier(identifier)
 -- aliases		-> :AddAlias(aliases)
 -- arguments	-> :AddArgument(arguments)
+-- noArgument 	-> :AddNoArgument(handler)
+-- wrongArgument-> :AddWrongArgument(handler)
 function LSC:NewSlashCommand(identifier, aliases, arguments, noArgument, wrongArgument)
 	return SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgument)
 end
 
 -- alias for LSC:NewSlashCommand(identifier, aliases, arguments, noArgument, wrongArgument)
 function LSC:NewSC(identifier, aliases, arguments, noArgument, wrongArgument) 
-	--LSC:NewSlashCommand(identifier, aliases, arguments, noArgument, wrongArgument)
 	return SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgument)
 end
 
 -- LSC:NewSimpeSlashCommand([identifier], aliases, handler)
--- aliases		(string or table)	- words the slash command respond to (i.e /myaddon, /myadd)
---									  single string (ie "/myaddon") or table of string (ie {"/myaddon","/myadd","/addonmy"})
--- handler		(function)			- function that do the work (msg,editBox as arguments)
--- [identifier]	(string) 			- optional, unique identifier to the slash command. If omitted the addon name will be used
+-- simplified version, for a simplier slash command with no arguments (but with others)
+
 function LSC:NewSimpeSlashCommand(aliases, handler, identifier)
 	local sc = LSC:NewSlashCommand(identifier, aliases, nil, handler, nil)
 	sc:Done()
