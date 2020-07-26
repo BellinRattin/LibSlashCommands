@@ -97,7 +97,7 @@ function SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgum
 	obj:AddArgument(arguments)
 	obj:AddNoArgument(noArgument)
 	obj:AddWrongArgument(wrongArgument)
-	obj.silentError = true
+	obj.silentError = false
 
 	return obj
 end
