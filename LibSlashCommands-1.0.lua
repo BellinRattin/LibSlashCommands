@@ -14,6 +14,15 @@ local function CheckForLeadingSlash(word)
 	return word
 end
 
+local function CheckForAlreadyExistingSlashCommand(sc)
+	for id, val = in pairs(_G) do
+		if id:sub(1,5) == "SLASH" and val = sc then
+			return true
+		end
+	end
+	return false
+end
+
 local SlashCommand = {}
 
 function SlashCommand:AddIdentifier(identifier)
@@ -22,16 +31,28 @@ function SlashCommand:AddIdentifier(identifier)
 	self.identifier = identifier:upper()
 end
 
+
+
+local function AddAliasToTable(alias, tab, silent)
+	local sc = CheckForLeadingSlash(alias)
+	local exist = CheckForAlreadyExistingSlashCommand(sc)
+	if not exist then 
+		table.insert(tab, alias)
+	elseif not silent then
+		print("ERROR: "..sc.." already exists")
+	end
+end
+
 function SlashCommand:AddAlias(alias)
 	if type(alias) == "nil" then return end
 	local ty = type(alias)
 	assert((ty == "string") or (ty == "table"), "error, string or table requested")
 	self.aliases = self.aliases or {}
 	if ty == "string" then
-		table.insert(self.aliases, CheckForLeadingSlash(alias))
+		AddAliasToTable(alias, self.aliases, self.silentError)
 	else
 		for i = 1,#alias do
-			table.insert(self.aliases, CheckForLeadingSlash(alias[i]))
+			AddAliasToTable(alias[i], self.aliases, self.silentError)
 		end
 	end
 end
@@ -76,6 +97,7 @@ function SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgum
 	obj:AddArgument(arguments)
 	obj:AddNoArgument(noArgument)
 	obj:AddWrongArgument(wrongArgument)
+	obj.silentError = true
 
 	return obj
 end
@@ -84,6 +106,12 @@ function SlashCommand:Done()
 	if not self.identifier then
 		self.identifier = string.match(debugstack(3), '%[string "@\Interface\\AddOns\\(%S+)\\'):upper()
 	end 
+	if #self.aliases == 0 then 
+		if not self.silentError then
+			print("You need at least one alias")
+		end
+		return 
+	end
 	for i = 1,#self.aliases do
 		_G["SLASH_"..self.identifier..i] = self.aliases[i]
 	end
