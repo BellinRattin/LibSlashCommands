@@ -118,15 +118,19 @@ function SlashCommand:Done()
 	SlashCmdList[self.identifier] = function (msg, editBox)
 		local others = {}
 		for other in msg:gmatch("%S+") do table.insert(others, other) end
-		local argument = table.remove(others, 1)
-		if argument then
+		--local argument = table.remove(others, 1)
+		local argument = others[1]
+
+		if next(self.arguments) and argument then
+			table.remove(others,1)
 			if self.arguments[argument] then
 				self.arguments[argument](others, editBox)
 			elseif self.wrongArgument then
 				self.wrongArgumentFunction()
 			end
 		elseif self.noArgument then
-			self.noArgumentFunction(msg, editBox)
+			--table.insert(others, 1 ,argument)
+			self.noArgumentFunction(others, editBox)
 		end
 	end
 end
