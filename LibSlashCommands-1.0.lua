@@ -23,53 +23,60 @@ local function CheckForAlreadyExistingSlashCommand(sc)
 	return false
 end
 
-local SlashCommand = {}
-
-function SlashCommand:AddIdentifier(identifier)
-	if type(identifier) == "nil" then return end
-	assert((type(identifier) == "string"), "error, string or table requested")
-	self.identifier = identifier:upper()
-end
-
-
-
-local function AddAliasToTable(alias, tab, silent)
+local function AddAliasToTable(alias, tab, silent, count)
 	local sc = CheckForLeadingSlash(alias)
-	local exist = CheckForAlreadyExistingSlashCommand(sc)
-	if not exist then 
+	local already = CheckForAlreadyExistingSlashCommand(sc)
+	if not already then 
 		table.insert(tab, alias)
+		count = count + 1
 	elseif not silent then
 		print("ERROR: "..sc.." already exists")
 	end
 end
 
+local SlashCommand = {}
+
+function SlashCommand:AddIdentifier(identifier)
+	local ty = type(identifier)
+	if ty == "nil" then 
+		self.identifier = string.match(debugstack(3), '%[string "@\Interface\\AddOns\\(%S+)\\'):upper()
+		return 
+	end
+
+	assert((ty == "string"), "error, string requested")
+
+	self.identifier = identifier:upper()
+end
+
 function SlashCommand:AddAlias(alias)
-	if type(alias) == "nil" then return end
 	local ty = type(alias)
+	if ty == "nil" then return end
+
 	assert((ty == "string") or (ty == "table"), "error, string or table requested")
-	self.aliases = self.aliases or {}
+	
 	if ty == "string" then
-		AddAliasToTable(alias, self.aliases, self.silentError)
+		AddAliasToTable(alias, self.aliases, self.silentError, self.aliasesCount)
 	else
 		for i = 1,#alias do
-			AddAliasToTable(alias[i], self.aliases, self.silentError)
+			AddAliasToTable(alias[i], self.aliases, self.silentError, self.aliasesCount)
 		end
 	end
 end
 
 function SlashCommand:AddArgument(argument, handler)
-	if type(argument) == "nil" then return end
-	local arty = type(argument)
-	assert((arty == "string") or (arty == "table"), "argument #1 error, string or table requested")
-	local haty = type(handler)
-	assert((haty == "function") or (haty == "nil"), "argument #2 error, function requested")
-	self.arguments = self.arguments or {}
+	local tyar = type(argument)
+	if tyar == "nil" then return end
+	assert((tyar == "string") or (tyar == "table"), "argument #1 error, string or table requested")
+	local tyha = type(handler)
+	assert((tyha == "function") or (tyha == "nil"), "argument #2 error, function requested")
 
-	if arty == "string" then
+	if tyar == "string" then
 		self.arguments[argument] =  handler
+		self.argumentsCount = self.argumentsCount + 1
 	else
 		for i = 1,#argument do
 			self.arguments[argument[i][1]] = argument[i][2]
+			self.argumentsCount = self.argumentsCount + 1
 		end
 	end
 end
@@ -93,43 +100,53 @@ function SlashCommand:New(identifier, aliases, arguments, noArgument, wrongArgum
 	self.__index = self
 
 	obj:AddIdentifier(identifier)
-	obj:AddAlias(aliases)
-	obj:AddArgument(arguments)
-	obj:AddNoArgument(noArgument)
-	obj:AddWrongArgument(wrongArgument)
-	obj.silentError = false
 
+	obj.aliases = {}
+	obj.aliasesCount = 0
+	obj:AddAlias(aliases)
+
+	obj.arguments =  {}
+	obj.argumentsCount = 0
+	obj:AddArgument(arguments)
+
+	obj.noArgument = false
+	obj:AddNoArgument(noArgument)
+
+	obj.wrongArgument = false
+	obj:AddWrongArgument(wrongArgument)
+
+	obj.silentError = false
+	
 	return obj
 end
 
 function SlashCommand:Done()
-	if not self.identifier then
-		self.identifier = string.match(debugstack(3), '%[string "@\Interface\\AddOns\\(%S+)\\'):upper()
-	end 
-	if #self.aliases == 0 then 
+	if self.aliasesCount == 0 then 
 		if not self.silentError then
 			print("You need at least one alias")
 		end
 		return 
 	end
-	for i = 1,#self.aliases do
+
+	for i = 1,self.aliasesCount do
 		_G["SLASH_"..self.identifier..i] = self.aliases[i]
 	end
+
 	SlashCmdList[self.identifier] = function (msg, editBox)
 		local others = {}
 		for other in msg:gmatch("%S+") do table.insert(others, other) end
-		--local argument = table.remove(others, 1)
-		local argument = others[1]
 
-		if next(self.arguments) and argument then
-			table.remove(others,1)
+		if self.argumentsCount > 0 then
+			local argument = table.remove(others, 1)
 			if self.arguments[argument] then
 				self.arguments[argument](others, editBox)
+			elseif self.noArgument then
+				table.insert(others, 1, argument)
+				self.noArgumentFunction(others, editBox)
 			elseif self.wrongArgument then
 				self.wrongArgumentFunction()
 			end
 		elseif self.noArgument then
-			--table.insert(others, 1 ,argument)
 			self.noArgumentFunction(others, editBox)
 		end
 	end
