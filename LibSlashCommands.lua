@@ -74,13 +74,7 @@ local function CheckNoArgument(noArgument)
 	return noArgument
 end
 
--- check if wrongArgument is of the correct type
-local function CheckWrongArgument(wrongArgument)
-	if not wrongArgument then return end
-	assert(type(wrongArgument) == "function", "ERROR, wrongArgument must be a function")
-	return wrongArgument
-end
-
+-- check if handler is of the correct type
 local function CheckHandler(handler)
 	if not handler then return end
 	assert(type(handler) == "function", "ERROR, handler must be a function")
@@ -106,39 +100,20 @@ function LSC:NewSlashCommand(description)
 		if #others == 0 then
 			handler()
 		else
-			local argument = table.remove(others, 1)
-			if arguments[argument] then
-				arguments[argument](others,editBox)
+			if argumentsCount == 0 then
+				noArgument(others, editBox)
 			else
-				if noArgument then
-					table.insert(others, 1, argument)
-					noArgument(others,editBox)
-				else
-					handler()
-				end
-			end
-		end
-
-		if #others == 0 then
-			handler(msg, editBox)
-		else
-			if argumentsCount > 0 then
 				local argument = table.remove(others, 1)
 				if arguments[argument] then
 					arguments[argument](others,editBox)
 				else
-					--if wrongArgument then
-					--	wrongArgument(others,editBox)
-					--elseif noArgument then
 					if noArgument then
 						table.insert(others, 1, argument)
 						noArgument(others,editBox)
 					else
-						handler(msg, editBox)
+						handler()
 					end
 				end
-			else
-				noArgument(others, editBox)
 			end
 		end
 	end
