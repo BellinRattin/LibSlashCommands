@@ -1,5 +1,5 @@
 -- for more info and examples check the GitHub wiki
--- https://github.com/BellinRattin/LibSlashCommands-1.0/wiki
+-- https://github.com/BellinRattin/LibSlashCommands/wiki
 
 local MAJOR, MINOR = "LibSlashCommands", 1
 local LSC = LibStub:NewLibrary(MAJOR, MINOR)
