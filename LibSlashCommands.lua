@@ -57,6 +57,7 @@ end
 
 -- check if arguments are of the correct type and count them
 local function CheckArguments(arguments)
+	if not arguments then return end
 	assert(type(argument) == "table", "ERROR, arguments must be a table")
 	local count = 0
 	for k,v in pairs(arguments) do
@@ -92,7 +93,6 @@ function LSC:NewSlashCommand(description)
 	local aliases,   aliasesCount		= CheckAliases(description.aliases)
 	local arguments, argumentsCount 	= CheckArguments(description.arguments)
 	local noArgument 					= CheckNoArgument(description.noArgument)
-	local wrongArgument 				= CheckWrongArgument(description.wrongArgument)
 	local handler						= CheckHandler(description.handler)
 
 	for i = 1,aliasesCount do
@@ -104,6 +104,22 @@ function LSC:NewSlashCommand(description)
 		for other in msg:gmatch("%S+") do table.insert(others, other) end
 
 		if #others == 0 then
+			handler()
+		else
+			local argument = table.remove(others, 1)
+			if arguments[argument] then
+				arguments[argument](others,editBox)
+			else
+				if noArgument then
+					table.insert(others, 1, argument)
+					noArgument(others,editBox)
+				else
+					handler()
+				end
+			end
+		end
+
+		if #others == 0 then
 			handler(msg, editBox)
 		else
 			if argumentsCount > 0 then
@@ -111,11 +127,14 @@ function LSC:NewSlashCommand(description)
 				if arguments[argument] then
 					arguments[argument](others,editBox)
 				else
-					if wrongArgument then
-						wrongArgument(others,editBox)
-					elseif noArgument then
+					--if wrongArgument then
+					--	wrongArgument(others,editBox)
+					--elseif noArgument then
+					if noArgument then
 						table.insert(others, 1, argument)
 						noArgument(others,editBox)
+					else
+						handler(msg, editBox)
 					end
 				end
 			else
@@ -132,7 +151,7 @@ end
 
 -- Create a simplified Slash Command (/command -> do something)
 function LSC:NewSimpleSlashCommand(alias, handler, identifier)
-	local description = {["identifier"] = identifier, ["aliases"] = alias, ["noArgument"] = handler}
+	local description = {identifier = identifier, aliases = alias, handler = handler}
 	LSC:NewSlashCommand(description)
 end
 
