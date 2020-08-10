@@ -80,6 +80,12 @@ local function CheckWrongArgument(wrongArgument)
 	return wrongArgument
 end
 
+local function CheckHandler(handler)
+	if not handler then return end
+	assert(type(handler) == "function", "ERROR, handler must be a function")
+	return handler
+end
+
 -- Create a new Slash Command
 function LSC:NewSlashCommand(description)
 	local identifier 					= CheckIdentifier(description.identifier)
@@ -87,6 +93,7 @@ function LSC:NewSlashCommand(description)
 	local arguments, argumentsCount 	= CheckArguments(description.arguments)
 	local noArgument 					= CheckNoArgument(description.noArgument)
 	local wrongArgument 				= CheckWrongArgument(description.wrongArgument)
+	local handler						= CheckHandler(description.handler)
 
 	for i = 1,aliasesCount do
 		_G["SLASH_"..identifier..i] = aliases[i]
@@ -96,18 +103,24 @@ function LSC:NewSlashCommand(description)
 		local others = {}
 		for other in msg:gmatch("%S+") do table.insert(others, other) end
 
-		if argumentsCount > 0 then
-			local argument = table.remove(others, 1)
-			if arguments[argument] then
-				arguments[argument](others,editBox)
-			elseif noArgument then
-				table.insert(others, 1, argument)
+		if #others == 0 then
+			handler(msg, editBox)
+		else
+			if argumentsCount > 0 then
+				local argument = table.remove(others, 1)
+				if arguments[argument] then
+					arguments[argument](others,editBox)
+				else
+					if wrongArgument then
+						wrongArgument(others,editBox)
+					elseif noArgument then
+						table.insert(others, 1, argument)
+						noArgument(others,editBox)
+					end
+				end
+			else
 				noArgument(others, editBox)
-			elseif wrongArgument then
-				wrongArgument(others, editBox)
 			end
-		elseif noArgument then
-			noArgument(others, editBox)
 		end
 	end
 end
