@@ -1,0 +1,11 @@
+## Interface: 80300
+## Title: LibSlashCommands
+## Notes: Help build slash commands
+## Author: BellinRattin
+## Version: @project-version@
+## X-Category: Library
+## X-Curse-Project-ID: 410739
+
+LibStub\LibStub.lua
+
+LibSlashCommands.xml
