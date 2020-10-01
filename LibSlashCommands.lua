@@ -91,6 +91,7 @@ end
 
 -- Create a new Slash Command
 function LSC:NewSlashCommand(description)
+
 	local aliases,   aliasesCount		= CheckAliases(description.aliases)
 	local arguments, argumentsCount 	= CheckArguments(description.arguments)
 	local noArgument 					= CheckNoArgument(description.noArgument)
@@ -140,4 +141,3 @@ end
 -- Shorter name for NewSimpleSlashCommand
 function LSC:NewSimple(alias, handler)
 	LSC:NewSimpleSlashCommand(alias, handler)
-end
