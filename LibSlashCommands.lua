@@ -14,23 +14,31 @@ local function CheckForLeadingSlash(word)
 	return word
 end
 
+-- remove leading / 
+local function RemoveLeadingSlash(word)
+	if (string.sub(word,1,1) == "/") then
+		word = string.sub(word,2)
+	end
+	return word
+end
+
 local function CheckForAlreadyExistingSlashCommand(sc)
-	for id, val = in pairs(_G) do
-		if id:sub(1,5) == "SLASH" and val = sc then
+	for id, val  in pairs(_G) do
+		if id:sub(1,5) == "SLASH" and val == sc then
 			return true
 		end
 	end
 	return false
 end
 
-local GetCallerAddonName()
+local function GetCallerAddonName()
 	return string.match(debugstack(4), '%[string "@\Interface\\AddOns\\(%S+)\\')
 end
 
 -- check if identifier exists, otherwise get it. Capitalized of course
-local function CheckIdentifier(identifier)
+local function CheckIdentifier(identifier, alias)
 	if not identifier then
-		return GetCallerAddonName():upper()
+		return GetCallerAddonName():upper().."_"..RemoveLeadingSlash(alias):upper()
 	else
 		assert(type(identifier) == "string", "ERROR, if given, identifier must be string")
 		return identifier:upper()
@@ -58,10 +66,10 @@ end
 -- check if arguments are of the correct type and count them
 local function CheckArguments(arguments)
 	if not arguments then return end
-	assert(type(argument) == "table", "ERROR, arguments must be a table")
+	assert(type(arguments) == "table", "ERROR, arguments must be a table")
 	local count = 0
 	for k,v in pairs(arguments) do
-		assert((type(k) == "string") or (v) == "function"), "ERROR, in argument "..i..": argument must be in the format {string = function}")
+		assert(((type(k) == "string") and (type(v) == "function")), "ERROR, in argument "..(count+1)..": argument must be in the format string = function")
 		count = count + 1
 	end
 	return arguments, count
@@ -83,12 +91,13 @@ end
 
 -- Create a new Slash Command
 function LSC:NewSlashCommand(description)
-	local identifier 					= CheckIdentifier(description.identifier)
+
 	local aliases,   aliasesCount		= CheckAliases(description.aliases)
 	local arguments, argumentsCount 	= CheckArguments(description.arguments)
 	local noArgument 					= CheckNoArgument(description.noArgument)
 	local handler						= CheckHandler(description.handler)
-
+	local identifier 					= CheckIdentifier(description.identifier, aliases[1])
+	
 	for i = 1,aliasesCount do
 		_G["SLASH_"..identifier..i] = aliases[i]
 	end
@@ -125,12 +134,10 @@ function LSC:New(description)
 end
 
 -- Create a simplified Slash Command (/command -> do something)
-function LSC:NewSimpleSlashCommand(alias, handler, identifier)
-	local description = {identifier = identifier, aliases = alias, handler = handler}
-	LSC:NewSlashCommand(description)
+function LSC:NewSimpleSlashCommand(alias, handler)
+	LSC:NewSlashCommand{aliases = alias, handler = handler}
 end
 
 -- Shorter name for NewSimpleSlashCommand
-function LSC:NewSimple(alias, handler, identifier)
-	LSC:NewSimpleSlashCommand(alias, handler, identifier)
-end
+function LSC:NewSimple(alias, handler)
+	LSC:NewSimpleSlashCommand(alias, handler)
